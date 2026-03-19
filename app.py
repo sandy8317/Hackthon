@@ -241,6 +241,32 @@ def update_severity(ticket_id):
     return redirect(url_for("ticket_detail", ticket_id=ticket_id))
 
 
+@app.route("/reports/edu")
+def report_edu():
+    db = get_db()
+    tickets = db.execute(
+        "SELECT * FROM tickets WHERE LOWER(url) LIKE '%.edu' OR LOWER(url) LIKE '%.edu/%' OR LOWER(url) LIKE '%.edu?%'"
+        " ORDER BY CASE severity WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END, submitted_at DESC"
+    ).fetchall()
+
+    severity_counts = {s: 0 for s in SEVERITY_LEVELS}
+    status_counts = {s: 0 for s in STATUS_LEVELS}
+    for t in tickets:
+        if t["severity"] in severity_counts:
+            severity_counts[t["severity"]] += 1
+        if t["status"] in status_counts:
+            status_counts[t["status"]] += 1
+
+    return render_template(
+        "report_edu.html",
+        tickets=tickets,
+        severity_counts=severity_counts,
+        status_counts=status_counts,
+        severity_levels=SEVERITY_LEVELS,
+        status_levels=STATUS_LEVELS,
+    )
+
+
 @app.route("/dashboard")
 def dashboard():
     db = get_db()

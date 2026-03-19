@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}.edu Website Issues Report{% endblock %}
+
+{% block content %}
+<h1>.edu Website Issues Report</h1>
+
+<div class="card" style="margin-bottom:1.25rem;">
+    <h2>Summary</h2>
+    <p style="color:#666; margin-bottom:1rem;">All open and historical tickets for websites with a <strong>.edu</strong> domain.</p>
+
+    <div class="stat-row" role="region" aria-label="Tickets by severity">
+        {% for level in severity_levels %}
+        <div class="stat-card">
+            <div class="stat-label">{{ level }}</div>
+            <div class="stat-number">
+                <span class="badge badge-{{ level }}">{{ severity_counts[level] }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="stat-row" style="margin-top:0.75rem;" role="region" aria-label="Tickets by status">
+        {% for s in status_levels %}
+        <div class="stat-card">
+            <div class="stat-label">{{ s }}</div>
+            <div class="stat-number">
+                <span class="badge badge-{{ s | replace(' ', '-') }}">{{ status_counts[s] }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card">
+    {% if tickets %}
+    <table>
+        <caption class="sr-only">Tickets for .edu websites, sorted by severity then date</caption>
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Website</th>
+                <th scope="col">Severity</th>
+                <th scope="col">Status</th>
+                <th scope="col">Problem Date</th>
+                <th scope="col">Submitted</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr>
+                <td><a href="{{ url_for('ticket_detail', ticket_id=ticket.id) }}" aria-label="View ticket number {{ ticket.id }}">#{{ ticket.id }}</a></td>
+                <td>{{ ticket.customer_name }}</td>
+                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ ticket.url }}</td>
+                <td><span class="badge badge-{{ ticket.severity }}">{{ ticket.severity }}</span></td>
+                <td><span class="badge badge-{{ ticket.status | replace(' ', '-') }}">{{ ticket.status }}</span></td>
+                <td>{{ ticket.problem_time }}</td>
+                <td>{{ ticket.submitted_at[:10] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p style="margin-top:1rem; color:#666; font-size:0.9rem;">{{ tickets|length }} ticket{{ 's' if tickets|length != 1 }} found.</p>
+    {% else %}
+    <p style="color:#777; padding:1rem 0;">No tickets found for .edu websites.</p>
+    {% endif %}
+</div>
+{% endblock %}
