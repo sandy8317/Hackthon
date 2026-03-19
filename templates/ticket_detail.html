@@ -49,4 +49,16 @@
         <button type="submit" class="btn btn-primary">Save Status</button>
     </form>
 </div>
+
+<div class="card" style="margin-top:1.25rem;">
+    <h2>Update Severity</h2>
+    <form method="post" action="{{ url_for('update_severity', ticket_id=ticket.id) }}" style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+        <select name="severity">
+            {% for s in severity_levels %}
+                <option value="{{ s }}" {% if ticket.severity == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Save Severity</button>
+    </form>
+</div>
 {% endblock %}
