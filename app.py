@@ -9,6 +9,7 @@ DATABASE = "tickets.db"
 SEVERITY_LEVELS = ["Low", "Medium", "High", "Critical"]
 STATUS_LEVELS = ["Open", "In Progress", "Pending", "Closed"]
 PER_PAGE = 20
+DASHBOARD_LIMIT = 15
 
 
 def get_db():
@@ -188,14 +189,16 @@ def dashboard():
 
     status_counts = {s: 0 for s in STATUS_LEVELS}
     for row in db.execute("SELECT status, COUNT(*) as count FROM tickets GROUP BY status").fetchall():
-        status_counts[row["status"]] = row["count"]
+        if row["status"] in status_counts:
+            status_counts[row["status"]] = row["count"]
 
     severity_counts = {s: 0 for s in SEVERITY_LEVELS}
     for row in db.execute("SELECT severity, COUNT(*) as count FROM tickets GROUP BY severity").fetchall():
-        severity_counts[row["severity"]] = row["count"]
+        if row["severity"] in severity_counts:
+            severity_counts[row["severity"]] = row["count"]
 
     today_count = db.execute(
-        "SELECT COUNT(*) FROM tickets WHERE DATE(submitted_at) = DATE('now')"
+        "SELECT COUNT(*) FROM tickets WHERE DATETIME(submitted_at) >= DATETIME('now', 'start of day')"
     ).fetchone()[0]
 
     week_count = db.execute(
@@ -205,7 +208,8 @@ def dashboard():
     tickets = db.execute(
         "SELECT * FROM tickets WHERE status != 'Closed' "
         "ORDER BY CASE severity WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 "
-        "WHEN 'Medium' THEN 3 ELSE 4 END, submitted_at DESC LIMIT 15"
+        "WHEN 'Medium' THEN 3 ELSE 4 END, submitted_at DESC LIMIT ?",
+        (DASHBOARD_LIMIT,),
     ).fetchall()
 
     return render_template(
