@@ -28,7 +28,7 @@
 </div>
 
 <div class="card" style="margin-top: 1.5rem;">
-    <h2>Open &amp; In-Progress Tickets</h2>
+    <h2>Unresolved Tickets</h2>
 
     {% if tickets %}
     <table>
@@ -51,8 +51,9 @@
                 <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ ticket.url }}</td>
                 <td><span class="badge badge-{{ ticket.severity }}">{{ ticket.severity }}</span></td>
                 <td>
-                    <form method="POST" action="{{ url_for('update_status', ticket_id=ticket.id) }}">
+                    <form method="POST" action="{{ url_for('update_status', ticket_id=ticket.id) }}" style="display:flex; align-items:center; gap:0.35rem; flex-wrap:wrap;">
                         <input type="hidden" name="next" value="dashboard">
+                        <span class="badge badge-{{ ticket.status | replace(' ', '-') }}" style="margin-right:0.25rem;">{{ ticket.status }}</span>
                         <select name="status" style="width:auto; padding:0.3rem 0.5rem; font-size:0.88rem;">
                             {% for s in status_levels %}
                             <option value="{{ s }}" {% if ticket.status == s %}selected{% endif %}>{{ s }}</option>
