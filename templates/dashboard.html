@@ -54,7 +54,7 @@
                           style="display:flex; align-items:center; gap:0.35rem; flex-wrap:wrap;">
                         <input type="hidden" name="next" value="dashboard">
                         <span class="badge badge-{{ ticket.severity }}">{{ ticket.severity }}</span>
-                        <select name="severity" style="width:auto; padding:0.3rem 0.5rem; font-size:0.88rem;">
+                        <select name="severity" autocomplete="off" style="width:auto; padding:0.3rem 0.5rem; font-size:0.88rem;">
                             {% for s in severity_levels %}
                             <option value="{{ s }}" {% if ticket.severity == s %}selected{% endif %}>{{ s }}</option>
                             {% endfor %}
@@ -67,7 +67,7 @@
                     <form method="POST" action="{{ url_for('update_status', ticket_id=ticket.id) }}" style="display:flex; align-items:center; gap:0.35rem; flex-wrap:wrap;">
                         <input type="hidden" name="next" value="dashboard">
                         <span class="badge badge-{{ ticket.status | replace(' ', '-') }}" style="margin-right:0.25rem;">{{ ticket.status }}</span>
-                        <select name="status" style="width:auto; padding:0.3rem 0.5rem; font-size:0.88rem;">
+                        <select name="status" autocomplete="off" style="width:auto; padding:0.3rem 0.5rem; font-size:0.88rem;">
                             {% for s in status_levels %}
                             <option value="{{ s }}" {% if ticket.status == s %}selected{% endif %}>{{ s }}</option>
                             {% endfor %}
