@@ -40,3 +40,35 @@ def test_dashboard_orders_by_severity(client_with_tickets):
     response = client_with_tickets.get("/dashboard")
     body = response.data.decode()
     assert body.index("Alice") < body.index("Bob")
+
+
+def test_update_status_redirects_to_dashboard_when_next_is_dashboard(client_with_tickets):
+    """Successful status update with next=dashboard redirects back to /dashboard."""
+    with flask_app.app.app_context():
+        db = flask_app.get_db()
+        ticket = db.execute("SELECT id FROM tickets WHERE status != 'Closed' LIMIT 1").fetchone()
+        ticket_id = ticket["id"]
+
+    response = client_with_tickets.post(
+        f"/tickets/{ticket_id}/status",
+        data={"status": "Pending", "next": "dashboard"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/dashboard")
+
+
+def test_update_status_without_next_still_redirects_to_detail(client_with_tickets):
+    """Status update without next field still redirects to ticket_detail (existing behaviour)."""
+    with flask_app.app.app_context():
+        db = flask_app.get_db()
+        ticket = db.execute("SELECT id FROM tickets WHERE status != 'Closed' LIMIT 1").fetchone()
+        ticket_id = ticket["id"]
+
+    response = client_with_tickets.post(
+        f"/tickets/{ticket_id}/status",
+        data={"status": "Pending"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 302
+    assert f"/tickets/{ticket_id}" in response.headers["Location"]

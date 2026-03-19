@@ -173,13 +173,18 @@ def update_status(ticket_id):
     if ticket is None:
         flash("Ticket not found.", "error")
         return redirect(url_for("ticket_list"))
+    next_page = request.form.get("next", "")
     new_status = request.form.get("status", "")
     if new_status not in STATUS_LEVELS:
         flash("Invalid status.", "error")
+        if next_page == "dashboard":
+            return redirect(url_for("dashboard"))
         return redirect(url_for("ticket_detail", ticket_id=ticket_id))
     db.execute("UPDATE tickets SET status = ? WHERE id = ?", (new_status, ticket_id))
     db.commit()
     flash(f"Status updated to {new_status}.", "success")
+    if next_page == "dashboard":
+        return redirect(url_for("dashboard"))
     return redirect(url_for("ticket_detail", ticket_id=ticket_id))
 
 
