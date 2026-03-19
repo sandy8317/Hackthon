@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Submit a Support Ticket{% endblock %}
+
+{% block content %}
+<h1>Submit a Support Ticket</h1>
+<div class="card">
+    <form method="post" action="{{ url_for('submit') }}" novalidate>
+
+        <div class="form-group {% if errors.customer_name %}has-error{% endif %}">
+            <label for="customer_name">Your Name</label>
+            <input type="text" id="customer_name" name="customer_name"
+                   value="{{ form_data.get('customer_name', '') }}"
+                   placeholder="Jane Smith" maxlength="120">
+            {% if errors.customer_name %}
+                <div class="error">{{ errors.customer_name }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group {% if errors.email %}has-error{% endif %}">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email"
+                   value="{{ form_data.get('email', '') }}"
+                   placeholder="jane@example.com" maxlength="200">
+            {% if errors.email %}
+                <div class="error">{{ errors.email }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group {% if errors.url %}has-error{% endif %}">
+            <label for="url">Affected Website URL</label>
+            <input type="text" id="url" name="url"
+                   value="{{ form_data.get('url', '') }}"
+                   placeholder="https://example.com" maxlength="500">
+            {% if errors.url %}
+                <div class="error">{{ errors.url }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group {% if errors.severity %}has-error{% endif %}">
+            <label for="severity">Severity</label>
+            <select id="severity" name="severity">
+                <option value="" disabled {% if not form_data.get('severity') %}selected{% endif %}>Select severity…</option>
+                {% for level in severity_levels %}
+                    <option value="{{ level }}" {% if form_data.get('severity') == level %}selected{% endif %}>
+                        {{ level }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if errors.severity %}
+                <div class="error">{{ errors.severity }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group {% if errors.problem_time %}has-error{% endif %}">
+            <label for="problem_time">When Did the Problem Start?</label>
+            <input type="date" id="problem_time" name="problem_time"
+                   value="{{ form_data.get('problem_time', '') }}">
+            {% if errors.problem_time %}
+                <div class="error">{{ errors.problem_time }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group {% if errors.description %}has-error{% endif %}">
+            <label for="description">Problem Description</label>
+            <textarea id="description" name="description"
+                      placeholder="Describe the issue in detail…"
+                      maxlength="5000">{{ form_data.get('description', '') }}</textarea>
+            {% if errors.description %}
+                <div class="error">{{ errors.description }}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Ticket</button>
+    </form>
+</div>
+{% endblock %}

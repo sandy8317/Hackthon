@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Ticket #{{ ticket.id }}{% endblock %}
+
+{% block content %}
+<div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+    <h1 style="margin:0;">Ticket #{{ ticket.id }}</h1>
+    <span class="badge badge-{{ ticket.severity }}" style="font-size:0.9rem; padding:0.3rem 0.85rem;">{{ ticket.severity }}</span>
+    <span class="badge badge-{{ ticket.status | replace(' ', '-') }}" style="font-size:0.9rem; padding:0.3rem 0.85rem;">{{ ticket.status }}</span>
+    <a href="{{ url_for('ticket_list') }}" class="btn btn-secondary" style="margin-left:auto; padding:0.4rem 1rem; font-size:0.875rem;">&larr; Back to List</a>
+</div>
+
+<div class="card">
+    <h2>Customer Details</h2>
+    <div class="detail-grid" style="margin-bottom:1.5rem;">
+        <div class="detail-item">
+            <label>Name</label>
+            <div class="value">{{ ticket.customer_name }}</div>
+        </div>
+        <div class="detail-item">
+            <label>Email</label>
+            <div class="value">{{ ticket.email }}</div>
+        </div>
+        <div class="detail-item">
+            <label>Affected Website</label>
+            <div class="value">{{ ticket.url }}</div>
+        </div>
+        <div class="detail-item">
+            <label>Problem Time</label>
+            <div class="value">{{ ticket.problem_time }}</div>
+        </div>
+        <div class="detail-item">
+            <label>Submitted At</label>
+            <div class="value">{{ ticket.submitted_at }}</div>
+        </div>
+    </div>
+
+    <h2>Description</h2>
+    <div class="description-box">{{ ticket.description }}</div>
+</div>
+
+<div class="card" style="margin-top:1.25rem;">
+    <h2>Update Status</h2>
+    <form method="post" action="{{ url_for('update_status', ticket_id=ticket.id) }}" style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+        <select name="status">
+            {% for s in status_levels %}
+                <option value="{{ s }}" {% if ticket.status == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Save Status</button>
+    </form>
+</div>
+{% endblock %}
