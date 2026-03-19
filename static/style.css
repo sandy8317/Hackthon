@@ -367,3 +367,36 @@ footer {
     color: #999;
     margin-top: 3rem;
 }
+
+/* Dashboard stat cards */
+.stat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.9rem 1.25rem;
+    min-width: 110px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    text-align: center;
+}
+
+.stat-card .stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a3a5c;
+    line-height: 1.2;
+}
+
+.stat-card .stat-label {
+    font-size: 0.78rem;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+}
