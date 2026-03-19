@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS tickets (
     problem_time  TEXT     NOT NULL,
     description   TEXT     NOT NULL,
     status        TEXT     NOT NULL DEFAULT 'Open' CHECK(status IN ('Open','In Progress','Pending','Closed')),
-    submitted_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%S','now'))
+    submitted_at  TEXT     NOT NULL
 );

@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from flask import Flask, render_template, request, redirect, url_for, flash, g
 
 app = Flask(__name__)
@@ -103,9 +104,11 @@ def submit():
             )
 
         db = get_db()
+        chicago_tz = ZoneInfo("America/Chicago")
+        chicago_time = datetime.now(chicago_tz).strftime("%Y-%m-%dT%H:%M:%S")
         cursor = db.execute(
-            "INSERT INTO tickets (customer_name, email, url, severity, problem_time, description) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO tickets (customer_name, email, url, severity, problem_time, description, submitted_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
             (
                 request.form.get("customer_name", "").strip(),
                 request.form.get("email", "").strip(),
@@ -113,6 +116,7 @@ def submit():
                 request.form.get("severity", ""),
                 request.form.get("problem_time", "").strip(),
                 request.form.get("description", "").strip(),
+                chicago_time,
             ),
         )
         db.commit()
@@ -193,7 +197,17 @@ def ticket_detail(ticket_id):
     if ticket is None:
         flash("Ticket not found.", "error")
         return redirect(url_for("ticket_list"))
+
+    # Format submitted_at timestamp for Chicago time display
+    chicago_tz = ZoneInfo("America/Chicago")
+    submitted_dt = datetime.fromisoformat(ticket["submitted_at"])
+    if submitted_dt.tzinfo is None:
+        submitted_dt = submitted_dt.replace(tzinfo=ZoneInfo("UTC"))
+    chicago_dt = submitted_dt.astimezone(chicago_tz)
+    formatted_time = chicago_dt.strftime("%Y-%m-%d %I:%M %p %Z")
+
     return render_template("ticket_detail.html", ticket=ticket,
+                           submitted_at_formatted=formatted_time,
                            status_levels=STATUS_LEVELS, severity_levels=SEVERITY_LEVELS)
 
 
