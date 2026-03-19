@@ -5,23 +5,31 @@
 <h1>Support Tickets</h1>
 
 <div class="card">
-    <form method="get" action="{{ url_for('ticket_list') }}" class="filter-bar">
-        <label for="severity-filter" style="margin:0; white-space:nowrap;">Filter by severity:</label>
-        <select id="severity-filter" name="severity" onchange="this.form.submit()" aria-label="Filter tickets by severity">
+    <form method="get" action="{{ url_for('ticket_list') }}" class="filter-bar" role="search" aria-label="Search and filter tickets">
+        <label for="ticket-search" class="sr-only">Search tickets</label>
+        <input type="search" id="ticket-search" name="q" value="{{ search_query }}"
+               placeholder="Search by name, email, URL or description…"
+               style="flex:1; min-width:200px;">
+
+        <label for="severity-filter" style="margin:0; white-space:nowrap;">Severity:</label>
+        <select id="severity-filter" name="severity" aria-label="Filter by severity">
             <option value="">All</option>
             {% for level in severity_levels %}
                 <option value="{{ level }}" {% if severity_filter == level %}selected{% endif %}>{{ level }}</option>
             {% endfor %}
         </select>
-        <button type="submit" class="btn btn-secondary" style="padding:0.35rem 0.75rem; font-size:0.85rem;">Apply</button>
-        {% if severity_filter %}
+
+        <button type="submit" class="btn btn-primary" style="padding:0.35rem 0.75rem; font-size:0.85rem;">Search</button>
+        {% if severity_filter or search_query %}
             <a href="{{ url_for('ticket_list') }}" class="btn btn-secondary" style="padding:0.35rem 0.75rem; font-size:0.85rem;">Clear</a>
         {% endif %}
     </form>
 
     {% if tickets %}
     <table>
-        <caption class="sr-only">Support tickets{% if severity_filter %}, filtered by severity: {{ severity_filter }}{% endif %}</caption>
+        <caption class="sr-only">
+            Support tickets{% if search_query %}, search: "{{ search_query }}"{% endif %}{% if severity_filter %}, severity: {{ severity_filter }}{% endif %}
+        </caption>
         <thead>
             <tr>
                 <th scope="col">ID</th>
@@ -50,26 +58,28 @@
 
     <nav aria-label="Pagination" class="pagination">
         {% if page > 1 %}
-            <a href="{{ url_for('ticket_list', page=page-1, severity=severity_filter) }}" aria-label="Previous page">&laquo; Prev</a>
+            <a href="{{ url_for('ticket_list', page=page-1, severity=severity_filter, q=search_query) }}" aria-label="Previous page">&laquo; Prev</a>
         {% endif %}
 
         {% for p in range(1, total_pages + 1) %}
             {% if p == page %}
                 <span class="current" aria-current="page" aria-label="Page {{ p }}, current">{{ p }}</span>
             {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
-                <a href="{{ url_for('ticket_list', page=p, severity=severity_filter) }}" aria-label="Page {{ p }}">{{ p }}</a>
+                <a href="{{ url_for('ticket_list', page=p, severity=severity_filter, q=search_query) }}" aria-label="Page {{ p }}">{{ p }}</a>
             {% elif p == page - 3 or p == page + 3 %}
                 <span aria-hidden="true">&hellip;</span>
             {% endif %}
         {% endfor %}
 
         {% if page < total_pages %}
-            <a href="{{ url_for('ticket_list', page=page+1, severity=severity_filter) }}" aria-label="Next page">Next &raquo;</a>
+            <a href="{{ url_for('ticket_list', page=page+1, severity=severity_filter, q=search_query) }}" aria-label="Next page">Next &raquo;</a>
         {% endif %}
     </nav>
 
     {% else %}
-    <p style="color:#777; padding:1rem 0;">No tickets found{% if severity_filter %} for severity "{{ severity_filter }}"{% endif %}.</p>
+    <p style="color:#777; padding:1rem 0;">
+        No tickets found{% if search_query %} for "{{ search_query }}"{% endif %}{% if severity_filter %} with severity "{{ severity_filter }}"{% endif %}.
+    </p>
     {% endif %}
 </div>
 {% endblock %}

@@ -241,43 +241,43 @@ textarea {
 }
 
 .badge-Low {
-    background: #d4edda;
-    color: #155724;
+    background: #dcfce7;
+    color: #14532d;
 }
 
 .badge-Medium {
-    background: #fff3cd;
-    color: #856404;
+    background: #fef9c3;
+    color: #78350f;
 }
 
 .badge-High {
-    background: #ffe0b2;
-    color: #c04a00;
+    background: #ffedd5;
+    color: #7c2d12;
 }
 
 .badge-Critical {
-    background: #f8d7da;
-    color: #842029;
+    background: #fee2e2;
+    color: #7f1d1d;
 }
 
 .badge-Open {
     background: #dbeafe;
-    color: #1e40af;
+    color: #1e3a5f;
 }
 
 .badge-In-Progress {
-    background: #ede9fe;
-    color: #5b21b6;
+    background: #f3e8ff;
+    color: #3b0764;
 }
 
 .badge-Pending {
     background: #fef9c3;
-    color: #854d0e;
+    color: #78350f;
 }
 
 .badge-Closed {
-    background: #e5e7eb;
-    color: #374151;
+    background: #f3f4f6;
+    color: #111827;
 }
 
 /* Table */

@@ -127,22 +127,29 @@ def ticket_list():
     db = get_db()
     page = request.args.get("page", 1, type=int)
     severity_filter = request.args.get("severity", "")
+    search_query = request.args.get("q", "").strip()
+
+    conditions = []
+    params = []
 
     if severity_filter and severity_filter in SEVERITY_LEVELS:
-        total = db.execute(
-            "SELECT COUNT(*) FROM tickets WHERE severity = ?", (severity_filter,)
-        ).fetchone()[0]
-        tickets = db.execute(
-            "SELECT * FROM tickets WHERE severity = ? ORDER BY submitted_at DESC LIMIT ? OFFSET ?",
-            (severity_filter, PER_PAGE, (page - 1) * PER_PAGE),
-        ).fetchall()
+        conditions.append("severity = ?")
+        params.append(severity_filter)
     else:
         severity_filter = ""
-        total = db.execute("SELECT COUNT(*) FROM tickets").fetchone()[0]
-        tickets = db.execute(
-            "SELECT * FROM tickets ORDER BY submitted_at DESC LIMIT ? OFFSET ?",
-            (PER_PAGE, (page - 1) * PER_PAGE),
-        ).fetchall()
+
+    if search_query:
+        conditions.append("(customer_name LIKE ? OR email LIKE ? OR url LIKE ? OR description LIKE ?)")
+        like = f"%{search_query}%"
+        params.extend([like, like, like, like])
+
+    where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+
+    total = db.execute(f"SELECT COUNT(*) FROM tickets {where}", params).fetchone()[0]
+    tickets = db.execute(
+        f"SELECT * FROM tickets {where} ORDER BY submitted_at DESC LIMIT ? OFFSET ?",
+        params + [PER_PAGE, (page - 1) * PER_PAGE],
+    ).fetchall()
 
     total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
     return render_template(
@@ -151,6 +158,7 @@ def ticket_list():
         page=page,
         total_pages=total_pages,
         severity_filter=severity_filter,
+        search_query=search_query,
         severity_levels=SEVERITY_LEVELS,
         status_levels=STATUS_LEVELS,
     )
