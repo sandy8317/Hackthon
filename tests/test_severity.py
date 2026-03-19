@@ -13,7 +13,8 @@ def test_update_severity_persists_change(client_with_tickets):
     """Severity is actually updated in the database."""
     client_with_tickets.post("/tickets/1/severity", data={"severity": "Low"})
     response = client_with_tickets.get("/tickets/1")
-    assert b"Low" in response.data
+    assert b"badge-Low" in response.data
+    assert b"badge-Critical" not in response.data
 
 
 def test_update_severity_redirects_to_dashboard_when_next_is_dashboard(client_with_tickets):
