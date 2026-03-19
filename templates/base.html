@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Support Tickets{% endblock %} — HostSupport</title>
+    <title>{% block title %}Support Tickets{% endblock %} — The University of Chicago</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <nav aria-label="Main navigation">
         <div class="nav-inner">
-            <a href="{{ url_for('submit') }}" class="brand">HostSupport</a>
+            <img src="https://d3qi0qp55mx5f5.cloudfront.net/shared-resources/i/template/phoenix.svg" alt="University of Chicago Phoenix" style="height: 30px;">
+            <a href="{{ url_for('submit') }}" class="brand">The University of Chicago</a>
             <a href="{{ url_for('submit') }}">Submit Ticket</a>
             <a href="{{ url_for('dashboard') }}">Dashboard</a>
             <a href="{{ url_for('ticket_list') }}">View Tickets</a>
@@ -33,7 +34,7 @@
     </main>
 
     <footer>
-        &copy; 2026 HostSupport. All rights reserved.
+        &copy; 2026 The University of Chicago. All rights reserved.
     </footer>
 </body>
 </html>

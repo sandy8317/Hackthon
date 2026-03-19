@@ -13,7 +13,7 @@
     {% else %}
         <th scope="col" aria-sort="none">
             <a href="{{ url_for('ticket_list', sort=col, order='asc', severity=severity_filter, q=search_query) }}" class="sort-link">
-                {{ label }}
+                {{ label }}<span aria-hidden="true"> ▼</span>
             </a>
         </th>
     {% endif %}
