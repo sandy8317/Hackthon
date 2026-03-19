@@ -163,7 +163,8 @@ def ticket_detail(ticket_id):
     if ticket is None:
         flash("Ticket not found.", "error")
         return redirect(url_for("ticket_list"))
-    return render_template("ticket_detail.html", ticket=ticket, status_levels=STATUS_LEVELS)
+    return render_template("ticket_detail.html", ticket=ticket,
+                           status_levels=STATUS_LEVELS, severity_levels=SEVERITY_LEVELS)
 
 
 @app.route("/tickets/<int:ticket_id>/status", methods=["POST"])
@@ -183,6 +184,28 @@ def update_status(ticket_id):
     db.execute("UPDATE tickets SET status = ? WHERE id = ?", (new_status, ticket_id))
     db.commit()
     flash(f"Status updated to {new_status}.", "success")
+    if next_page == "dashboard":
+        return redirect(url_for("dashboard"))
+    return redirect(url_for("ticket_detail", ticket_id=ticket_id))
+
+
+@app.route("/tickets/<int:ticket_id>/severity", methods=["POST"])
+def update_severity(ticket_id):
+    db = get_db()
+    ticket = db.execute("SELECT id FROM tickets WHERE id = ?", (ticket_id,)).fetchone()
+    if ticket is None:
+        flash("Ticket not found.", "error")
+        return redirect(url_for("ticket_list"))
+    next_page = request.form.get("next", "")
+    new_severity = request.form.get("severity", "")
+    if new_severity not in SEVERITY_LEVELS:
+        flash("Invalid severity.", "error")
+        if next_page == "dashboard":
+            return redirect(url_for("dashboard"))
+        return redirect(url_for("ticket_detail", ticket_id=ticket_id))
+    db.execute("UPDATE tickets SET severity = ? WHERE id = ?", (new_severity, ticket_id))
+    db.commit()
+    flash(f"Severity updated to {new_severity}.", "success")
     if next_page == "dashboard":
         return redirect(url_for("dashboard"))
     return redirect(url_for("ticket_detail", ticket_id=ticket_id))
