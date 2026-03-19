@@ -280,6 +280,28 @@ textarea {
     color: #111827;
 }
 
+/* Sortable column headers */
+.sort-link {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    white-space: nowrap;
+}
+
+.sort-link:hover {
+    text-decoration: underline;
+}
+
+.sort-link:focus {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+.sort-active {
+    text-decoration: underline;
+}
+
 /* Table */
 table {
     width: 100%;

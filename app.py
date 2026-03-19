@@ -9,6 +9,17 @@ DATABASE = "tickets.db"
 SEVERITY_LEVELS = ["Low", "Medium", "High", "Critical"]
 STATUS_LEVELS = ["Open", "In Progress", "Pending", "Closed"]
 PER_PAGE = 20
+
+# Whitelist of sortable columns; values are SQL expressions
+SORT_COLUMNS = {
+    "id": "id",
+    "customer_name": "customer_name",
+    "url": "url",
+    "severity": "CASE severity WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END",
+    "status": "CASE status WHEN 'Open' THEN 1 WHEN 'In Progress' THEN 2 WHEN 'Pending' THEN 3 ELSE 4 END",
+    "problem_time": "problem_time",
+    "submitted_at": "submitted_at",
+}
 DASHBOARD_LIMIT = 15
 
 
@@ -128,6 +139,13 @@ def ticket_list():
     page = request.args.get("page", 1, type=int)
     severity_filter = request.args.get("severity", "")
     search_query = request.args.get("q", "").strip()
+    sort = request.args.get("sort", "submitted_at")
+    order = request.args.get("order", "desc")
+
+    if sort not in SORT_COLUMNS:
+        sort = "submitted_at"
+    if order not in ("asc", "desc"):
+        order = "desc"
 
     conditions = []
     params = []
@@ -144,10 +162,12 @@ def ticket_list():
         params.extend([like, like, like, like])
 
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    order_sql = "ASC" if order == "asc" else "DESC"
+    sort_expr = SORT_COLUMNS[sort]
 
     total = db.execute(f"SELECT COUNT(*) FROM tickets {where}", params).fetchone()[0]
     tickets = db.execute(
-        f"SELECT * FROM tickets {where} ORDER BY submitted_at DESC LIMIT ? OFFSET ?",
+        f"SELECT * FROM tickets {where} ORDER BY {sort_expr} {order_sql} LIMIT ? OFFSET ?",
         params + [PER_PAGE, (page - 1) * PER_PAGE],
     ).fetchall()
 
@@ -159,6 +179,8 @@ def ticket_list():
         total_pages=total_pages,
         severity_filter=severity_filter,
         search_query=search_query,
+        sort=sort,
+        order=order,
         severity_levels=SEVERITY_LEVELS,
         status_levels=STATUS_LEVELS,
     )
