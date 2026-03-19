@@ -4,15 +4,17 @@
 {% block content %}
 <h1>Submit a Support Ticket</h1>
 <div class="card">
-    <form method="post" action="{{ url_for('submit') }}" novalidate>
+    <form method="post" action="{{ url_for('submit') }}" novalidate aria-label="Support ticket submission form">
 
         <div class="form-group {% if errors.customer_name %}has-error{% endif %}">
             <label for="customer_name">Your Name</label>
             <input type="text" id="customer_name" name="customer_name"
                    value="{{ form_data.get('customer_name', '') }}"
-                   placeholder="Jane Smith" maxlength="120">
+                   placeholder="Jane Smith" maxlength="120"
+                   aria-required="true"
+                   {% if errors.customer_name %}aria-invalid="true" aria-describedby="customer_name-error"{% endif %}>
             {% if errors.customer_name %}
-                <div class="error">{{ errors.customer_name }}</div>
+                <div class="error" id="customer_name-error" role="alert">{{ errors.customer_name }}</div>
             {% endif %}
         </div>
 
@@ -20,9 +22,11 @@
             <label for="email">Email Address</label>
             <input type="email" id="email" name="email"
                    value="{{ form_data.get('email', '') }}"
-                   placeholder="jane@example.com" maxlength="200">
+                   placeholder="jane@example.com" maxlength="200"
+                   aria-required="true"
+                   {% if errors.email %}aria-invalid="true" aria-describedby="email-error"{% endif %}>
             {% if errors.email %}
-                <div class="error">{{ errors.email }}</div>
+                <div class="error" id="email-error" role="alert">{{ errors.email }}</div>
             {% endif %}
         </div>
 
@@ -30,15 +34,19 @@
             <label for="url">Affected Website URL</label>
             <input type="text" id="url" name="url"
                    value="{{ form_data.get('url', '') }}"
-                   placeholder="https://example.com" maxlength="500">
+                   placeholder="https://example.com" maxlength="500"
+                   aria-required="true"
+                   {% if errors.url %}aria-invalid="true" aria-describedby="url-error"{% endif %}>
             {% if errors.url %}
-                <div class="error">{{ errors.url }}</div>
+                <div class="error" id="url-error" role="alert">{{ errors.url }}</div>
             {% endif %}
         </div>
 
         <div class="form-group {% if errors.severity %}has-error{% endif %}">
             <label for="severity">Severity</label>
-            <select id="severity" name="severity">
+            <select id="severity" name="severity"
+                    aria-required="true"
+                    {% if errors.severity %}aria-invalid="true" aria-describedby="severity-error"{% endif %}>
                 <option value="" disabled {% if not form_data.get('severity') %}selected{% endif %}>Select severity…</option>
                 {% for level in severity_levels %}
                     <option value="{{ level }}" {% if form_data.get('severity') == level %}selected{% endif %}>
@@ -47,16 +55,18 @@
                 {% endfor %}
             </select>
             {% if errors.severity %}
-                <div class="error">{{ errors.severity }}</div>
+                <div class="error" id="severity-error" role="alert">{{ errors.severity }}</div>
             {% endif %}
         </div>
 
         <div class="form-group {% if errors.problem_time %}has-error{% endif %}">
             <label for="problem_time">When Did the Problem Start?</label>
             <input type="date" id="problem_time" name="problem_time"
-                   value="{{ form_data.get('problem_time', '') }}">
+                   value="{{ form_data.get('problem_time', '') }}"
+                   aria-required="true"
+                   {% if errors.problem_time %}aria-invalid="true" aria-describedby="problem_time-error"{% endif %}>
             {% if errors.problem_time %}
-                <div class="error">{{ errors.problem_time }}</div>
+                <div class="error" id="problem_time-error" role="alert">{{ errors.problem_time }}</div>
             {% endif %}
         </div>
 
@@ -64,9 +74,11 @@
             <label for="description">Problem Description</label>
             <textarea id="description" name="description"
                       placeholder="Describe the issue in detail…"
-                      maxlength="5000">{{ form_data.get('description', '') }}</textarea>
+                      maxlength="5000"
+                      aria-required="true"
+                      {% if errors.description %}aria-invalid="true" aria-describedby="description-error"{% endif %}>{{ form_data.get('description', '') }}</textarea>
             {% if errors.description %}
-                <div class="error">{{ errors.description }}</div>
+                <div class="error" id="description-error" role="alert">{{ errors.description }}</div>
             {% endif %}
         </div>
 

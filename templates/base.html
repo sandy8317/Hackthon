@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <nav>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <nav aria-label="Main navigation">
         <div class="nav-inner">
             <a href="{{ url_for('submit') }}" class="brand">HostSupport</a>
             <a href="{{ url_for('submit') }}">Submit Ticket</a>
@@ -18,7 +19,7 @@
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="flash-messages">
+            <div class="flash-messages" role="status" aria-live="polite">
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }}">{{ message }}</div>
                 {% endfor %}
@@ -26,7 +27,7 @@
         {% endif %}
     {% endwith %}
 
-    <main class="container">
+    <main id="main-content" class="container">
         {% block content %}{% endblock %}
     </main>
 
