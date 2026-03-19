@@ -76,7 +76,7 @@
                     </form>
                 </td>
                 <td>{{ ticket.problem_time }}</td>
-                <td>{{ ticket.submitted_at }}</td>
+                <td>{{ ticket.submitted_at[:10] }}</td>
             </tr>
             {% endfor %}
         </tbody>
