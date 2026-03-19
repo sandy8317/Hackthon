@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="stat-row">
+    <div class="stat-card">
+        <div class="stat-label">Today</div>
+        <div class="stat-number">{{ today_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Last 7 Days</div>
+        <div class="stat-number">{{ week_count }}</div>
+    </div>
+    {% for s in status_levels %}
+    <div class="stat-card">
+        <div class="stat-label">{{ s }}</div>
+        <div class="stat-number">{{ status_counts[s] }}</div>
+    </div>
+    {% endfor %}
+    {% for s in severity_levels %}
+    <div class="stat-card">
+        <div class="stat-label">{{ s }}</div>
+        <div class="stat-number">{{ severity_counts[s] }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card" style="margin-top: 1.5rem;">
+    <h2>Open &amp; In-Progress Tickets</h2>
+
+    {% if tickets %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer</th>
+                <th>Website</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Problem Time</th>
+                <th>Submitted</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr>
+                <td><a href="{{ url_for('ticket_detail', ticket_id=ticket.id) }}">#{{ ticket.id }}</a></td>
+                <td>{{ ticket.customer_name }}</td>
+                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ ticket.url }}</td>
+                <td><span class="badge badge-{{ ticket.severity }}">{{ ticket.severity }}</span></td>
+                <td>
+                    <form method="POST" action="{{ url_for('update_status', ticket_id=ticket.id) }}">
+                        <input type="hidden" name="next" value="dashboard">
+                        <select name="status" style="width:auto; padding:0.3rem 0.5rem; font-size:0.88rem;">
+                            {% for s in status_levels %}
+                            <option value="{{ s }}" {% if ticket.status == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-primary" style="padding:0.3rem 0.65rem; font-size:0.85rem; margin-left:0.35rem;">Save</button>
+                    </form>
+                </td>
+                <td>{{ ticket.problem_time }}</td>
+                <td>{{ ticket.submitted_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#777; padding:1rem 0;">No open tickets.</p>
+    {% endif %}
+</div>
+
+<div style="margin-top: 1.25rem;">
+    <a href="{{ url_for('ticket_list') }}" class="btn btn-secondary">View all tickets</a>
+</div>
+{% endblock %}
