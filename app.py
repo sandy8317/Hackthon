@@ -182,6 +182,44 @@ def update_status(ticket_id):
     return redirect(url_for("ticket_detail", ticket_id=ticket_id))
 
 
+@app.route("/dashboard")
+def dashboard():
+    db = get_db()
+
+    status_counts = {s: 0 for s in STATUS_LEVELS}
+    for row in db.execute("SELECT status, COUNT(*) as count FROM tickets GROUP BY status").fetchall():
+        status_counts[row["status"]] = row["count"]
+
+    severity_counts = {s: 0 for s in SEVERITY_LEVELS}
+    for row in db.execute("SELECT severity, COUNT(*) as count FROM tickets GROUP BY severity").fetchall():
+        severity_counts[row["severity"]] = row["count"]
+
+    today_count = db.execute(
+        "SELECT COUNT(*) FROM tickets WHERE DATE(submitted_at) = DATE('now')"
+    ).fetchone()[0]
+
+    week_count = db.execute(
+        "SELECT COUNT(*) FROM tickets WHERE DATETIME(submitted_at) >= DATETIME('now', '-7 days')"
+    ).fetchone()[0]
+
+    tickets = db.execute(
+        "SELECT * FROM tickets WHERE status != 'Closed' "
+        "ORDER BY CASE severity WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 "
+        "WHEN 'Medium' THEN 3 ELSE 4 END, submitted_at DESC LIMIT 15"
+    ).fetchall()
+
+    return render_template(
+        "dashboard.html",
+        status_counts=status_counts,
+        severity_counts=severity_counts,
+        today_count=today_count,
+        week_count=week_count,
+        tickets=tickets,
+        status_levels=STATUS_LEVELS,
+        severity_levels=SEVERITY_LEVELS,
+    )
+
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
