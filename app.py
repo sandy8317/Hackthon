@@ -522,6 +522,23 @@ def api_get_ticket(ticket_id):
     }
 
 
+@app.route("/api/tickets/<int:ticket_id>/status", methods=["PATCH"])
+def api_update_ticket_status(ticket_id):
+    db = get_db()
+    ticket = db.execute("SELECT id FROM tickets WHERE id = ?", (ticket_id,)).fetchone()
+    if ticket is None:
+        return {"error": "Ticket not found"}, 404
+    data = request.get_json(silent=True)
+    if not data or "status" not in data:
+        return {"error": "Missing 'status' field in request body"}, 400
+    new_status = data["status"]
+    if new_status not in STATUS_LEVELS:
+        return {"error": f"Invalid status. Must be one of: {', '.join(STATUS_LEVELS)}"}, 400
+    db.execute("UPDATE tickets SET status = ? WHERE id = ?", (new_status, ticket_id))
+    db.commit()
+    return {"id": ticket_id, "status": new_status}
+
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
