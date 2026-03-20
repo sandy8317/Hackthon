@@ -92,6 +92,15 @@ Defined in `STATUS_LEVELS = ["Open", "In Progress", "Pending", "Closed"]`. Defau
 ### Pagination
 20 tickets per page (`PER_PAGE = 20`). Controlled by `?page=N` query param in `/tickets`.
 
+## Dark Mode
+
+The app supports a persistent dark mode toggle:
+
+- A moon/sun icon button in the top nav toggles dark mode
+- Theme is stored in `localStorage` under the key `theme` (`"dark"` or `"light"`)
+- An inline `<script>` in `<head>` reads `localStorage` and sets `data-theme="dark"` on `<html>` before CSS renders, preventing flash of unstyled content
+- All dark mode styles live in `static/style.css` under `[data-theme="dark"]` selectors — no separate stylesheet needed
+
 ## Accessibility
 
 The UI adheres to strict WCAG 2.1 AA standards throughout all templates:

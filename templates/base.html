@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Support Tickets{% endblock %} — The University of Chicago</title>
+    <script>(function(){if(localStorage.getItem('theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}());</script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -41,6 +42,25 @@
     </nav>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Dark mode toggle
+            const darkToggle = document.getElementById('dark-mode-toggle');
+            function updateToggleLabel() {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                darkToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+            }
+            updateToggleLabel();
+            darkToggle.addEventListener('click', function() {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                if (isDark) {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                }
+                updateToggleLabel();
+            });
+
             const menuTrigger = document.querySelector('.user-menu-trigger');
             const menuDropdown = document.querySelector('.user-menu-dropdown');
             const userMenu = document.querySelector('.user-menu');
