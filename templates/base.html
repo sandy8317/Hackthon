@@ -10,14 +10,150 @@
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <nav aria-label="Main navigation">
         <div class="nav-inner">
-            <img src="https://d3qi0qp55mx5f5.cloudfront.net/shared-resources/i/template/phoenix.svg" alt="University of Chicago Phoenix" style="height: 30px;">
+            <img src="https://d3qi0qp55mx5f5.cloudfront.net/shared-resources/i/template/phoenix.svg" alt="University of Chicago Phoenix" style="height: 25px;">
             <a href="{{ url_for('submit') }}" class="brand">The University of Chicago</a>
-            <a href="{{ url_for('submit') }}">Submit Ticket</a>
-            <a href="{{ url_for('dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('ticket_list') }}">View Tickets</a>
-            <a href="{{ url_for('report_edu') }}">.edu Report</a>
+            <a href="{{ url_for('submit') }}" class="nav-link {% if request.endpoint == 'submit' or request.endpoint == 'submit_success' %}active{% endif %}" {% if request.endpoint == 'submit' or request.endpoint == 'submit_success' %}aria-current="page"{% endif %}>Submit Ticket</a>
+            <div class="user-menu">
+                <button
+                    class="user-menu-trigger"
+                    id="user-menu-button"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-controls="user-menu-dropdown"
+                    aria-label="User menu">
+                    <span class="user-name">Staff User</span>
+                    <svg class="dropdown-arrow" width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div
+                    class="user-menu-dropdown"
+                    id="user-menu-dropdown"
+                    role="menu"
+                    aria-labelledby="user-menu-button"
+                    aria-hidden="true">
+                    <a href="{{ url_for('dashboard') }}" role="menuitem" tabindex="-1" class="{% if request.endpoint == 'dashboard' %}active{% endif %}" {% if request.endpoint == 'dashboard' %}aria-current="page"{% endif %}>Dashboard</a>
+                    <a href="{{ url_for('ticket_list') }}" role="menuitem" tabindex="-1" class="{% if request.endpoint == 'ticket_list' or request.endpoint == 'ticket_detail' or request.endpoint == 'update_status' or request.endpoint == 'update_severity' %}active{% endif %}" {% if request.endpoint == 'ticket_list' or request.endpoint == 'ticket_detail' %}aria-current="page"{% endif %}>View Tickets</a>
+                    <a href="{{ url_for('report_edu') }}" role="menuitem" tabindex="-1" class="{% if request.endpoint == 'report_edu' or request.endpoint == 'report_edu_export' %}active{% endif %}" {% if request.endpoint == 'report_edu' %}aria-current="page"{% endif %}>Reports</a>
+                </div>
+            </div>
         </div>
     </nav>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuTrigger = document.querySelector('.user-menu-trigger');
+            const menuDropdown = document.querySelector('.user-menu-dropdown');
+            const userMenu = document.querySelector('.user-menu');
+            const menuItems = menuDropdown.querySelectorAll('[role="menuitem"]');
+            let currentIndex = -1;
+
+            function openMenu() {
+                menuTrigger.setAttribute('aria-expanded', 'true');
+                menuDropdown.setAttribute('aria-hidden', 'false');
+                menuDropdown.classList.add('show');
+                currentIndex = 0;
+                menuItems[currentIndex].focus();
+            }
+
+            function closeMenu(returnFocus = true) {
+                menuTrigger.setAttribute('aria-expanded', 'false');
+                menuDropdown.setAttribute('aria-hidden', 'true');
+                menuDropdown.classList.remove('show');
+                currentIndex = -1;
+                if (returnFocus) {
+                    menuTrigger.focus();
+                }
+            }
+
+            function focusNextItem() {
+                currentIndex = (currentIndex + 1) % menuItems.length;
+                menuItems[currentIndex].focus();
+            }
+
+            function focusPreviousItem() {
+                currentIndex = currentIndex <= 0 ? menuItems.length - 1 : currentIndex - 1;
+                menuItems[currentIndex].focus();
+            }
+
+            // Toggle menu on button click
+            menuTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                if (isExpanded) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            });
+
+            // Keyboard navigation for button
+            menuTrigger.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    openMenu();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    openMenu();
+                    currentIndex = menuItems.length - 1;
+                    menuItems[currentIndex].focus();
+                }
+            });
+
+            // Keyboard navigation within menu
+            menuDropdown.addEventListener('keydown', function(e) {
+                switch(e.key) {
+                    case 'Escape':
+                        e.preventDefault();
+                        closeMenu();
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        focusNextItem();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        focusPreviousItem();
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        currentIndex = 0;
+                        menuItems[currentIndex].focus();
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        currentIndex = menuItems.length - 1;
+                        menuItems[currentIndex].focus();
+                        break;
+                    case 'Tab':
+                        closeMenu(false);
+                        break;
+                }
+            });
+
+            // Close menu on outside click
+            document.addEventListener('click', function(e) {
+                if (!userMenu.contains(e.target)) {
+                    closeMenu(false);
+                }
+            });
+
+            // Close menu on outside focus
+            document.addEventListener('focusin', function(e) {
+                if (!userMenu.contains(e.target) && menuTrigger.getAttribute('aria-expanded') === 'true') {
+                    closeMenu(false);
+                }
+            });
+        });
+    </script>
+
+    <!-- Header Section -->
+    <header class="page-header">
+        <div class="page-header-inner">
+            <a href="{{ url_for('dashboard') }}" class="page-header-logo-link" aria-label="Go to dashboard">
+                <img src="https://d3qi0qp55mx5f5.cloudfront.net/demo/i/template/logo-maroon.svg" alt="The University of Chicago" class="page-header-logo">
+            </a>
+        </div>
+    </header>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}

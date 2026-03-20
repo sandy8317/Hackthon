@@ -1,40 +1,245 @@
 {% extends "base.html" %}
-{% block title %}.edu Website Issues Report{% endblock %}
+{% block title %}Reports{% endblock %}
 
 {% block content %}
-<h1>.edu Website Issues Report</h1>
+<h1>{% if report_generated %}{{ report_title }}{% else %}Report Builder{% endif %}</h1>
 
-<div class="card" style="margin-bottom:1.25rem;">
-    <h2>Summary</h2>
-    <p style="color:#666; margin-bottom:1rem;">All open and historical tickets for websites with a <strong>.edu</strong> domain.</p>
+<div class="card" style="margin-bottom:{% if report_generated %}1.5rem{% else %}0{% endif %};">
+    <h2 id="report-builder-heading">Create Report</h2>
+    <p style="color:#666; margin-bottom:1.25rem; font-size:0.95rem;">Select your role to view available report options.</p>
+    <form method="POST" action="{{ url_for('report_edu') }}" aria-labelledby="report-builder-heading">
+        <!-- Role Selection -->
+        <div class="role-selection" style="margin-bottom: 1.5rem;">
+            <fieldset style="border: none; padding: 0; margin: 0;">
+                <legend style="font-weight: 600; margin-bottom: 0.75rem; font-size: 0.95rem;">I am a: <span class="required-indicator">*</span></legend>
+                <div class="role-buttons" role="radiogroup" aria-label="Select your role">
+                    <label class="role-button">
+                        <input type="radio" name="user_role" value="staff" id="role-staff" {% if filters.user_role == 'staff' or not filters.user_role %}checked{% endif %} required aria-required="true">
+                        <span class="role-button-content">
+                            <span class="role-title">Staff Member</span>
+                            <span class="role-description">View assigned tickets and team reports</span>
+                        </span>
+                    </label>
+                    <label class="role-button">
+                        <input type="radio" name="user_role" value="manager" id="role-manager" {% if filters.user_role == 'manager' %}checked{% endif %} required aria-required="true">
+                        <span class="role-button-content">
+                            <span class="role-title">Manager</span>
+                            <span class="role-description">Full access to all reports and filters</span>
+                        </span>
+                    </label>
+                </div>
+            </fieldset>
+        </div>
 
-    <div class="stat-row" role="region" aria-label="Tickets by severity">
+        <div class="report-builder-grid">
+            <!-- Report Type -->
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="report_type">Report Type <span class="required-indicator">*</span></label>
+                <select name="report_type" id="report_type" required aria-required="true">
+                    <!-- Staff Options -->
+                    <optgroup label="Staff Reports" id="staff-reports">
+                        <option value="open" {% if filters.report_type == 'open' %}selected{% endif %}>My Open Tickets — All Open and In Progress</option>
+                        <option value="high_priority" {% if filters.report_type == 'high_priority' %}selected{% endif %}>High Priority — Urgent tickets requiring attention</option>
+                        <option value="pending" {% if filters.report_type == 'pending' %}selected{% endif %}>Pending Review — Awaiting response or action</option>
+                        <option value="recent" {% if filters.report_type == 'recent' %}selected{% endif %}>Recent Activity — Last 30 days</option>
+                    </optgroup>
+
+                    <!-- Manager Options -->
+                    <optgroup label="Manager Reports" id="manager-reports" style="display: none;">
+                        <option value="open" {% if filters.report_type == 'open' %}selected{% endif %}>Open Tickets — All Open and In Progress</option>
+                        <option value="high_priority" {% if filters.report_type == 'high_priority' %}selected{% endif %}>High Priority — Critical and High severity</option>
+                        <option value="pending" {% if filters.report_type == 'pending' %}selected{% endif %}>Pending Review — All Pending status</option>
+                        <option value="recent" {% if filters.report_type == 'recent' %}selected{% endif %}>Recent Activity — Last 30 days</option>
+                        <option value="edu" {% if filters.report_type == 'edu' %}selected{% endif %}>.edu Websites — Educational domains</option>
+                        <option value="closed_week" {% if filters.report_type == 'closed_week' %}selected{% endif %}>Closed This Week — Completed tickets</option>
+                        <option value="all_tickets" {% if filters.report_type == 'all_tickets' %}selected{% endif %}>All Tickets — Complete ticket history</option>
+                        <option value="custom" {% if filters.report_type == 'custom' %}selected{% endif %}>Custom Report — Full control</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+
+        <!-- Staff Filters (Date range only) -->
+        <div id="staff-filters" style="display: none;">
+            <div class="filter-info-box" role="region" aria-label="Available filters">
+                <p><strong>Optional Filters:</strong> Narrow your results by date range.</p>
+            </div>
+            <div class="report-builder-grid" style="margin-top: 1rem;">
+                <div class="form-group">
+                    <label for="staff_date_from">Filter by Date From <span class="helper-text">(optional)</span></label>
+                    <input
+                        type="date"
+                        name="date_from"
+                        id="staff_date_from"
+                        value="{{ filters.date_from }}"
+                        aria-describedby="staff-date-from-help">
+                    <span id="staff-date-from-help" class="sr-only">Filter tickets submitted on or after this date</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="staff_date_to">Filter by Date To <span class="helper-text">(optional)</span></label>
+                    <input
+                        type="date"
+                        name="date_to"
+                        id="staff_date_to"
+                        value="{{ filters.date_to }}"
+                        aria-describedby="staff-date-to-help">
+                    <span id="staff-date-to-help" class="sr-only">Filter tickets submitted on or before this date</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manager Filters (Full control) -->
+        <div id="manager-filters" style="display: none;">
+            <div class="filter-info-box" role="region" aria-label="Available filters">
+                <p><strong>Advanced Filters:</strong> Customize your report with URL search, date ranges, severity, and status filters. Leave blank to include all.</p>
+            </div>
+            <div class="report-builder-grid" style="margin-top: 1rem;">
+                <!-- URL Contains -->
+                <div class="form-group" id="url-filter-group">
+                    <label for="url_contains">
+                        URL Contains
+                        <span class="helper-text">(optional)</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="url_contains"
+                        id="url_contains"
+                        value="{{ filters.url_contains }}"
+                        placeholder="e.g., example.com"
+                        aria-describedby="url-filter-help">
+                    <span id="url-filter-help" class="sr-only">Enter text to search for in website URLs</span>
+                </div>
+
+                <!-- Date Range -->
+                <div class="form-group">
+                    <label for="manager_date_from">Submitted Date From</label>
+                    <input
+                        type="date"
+                        name="date_from"
+                        id="manager_date_from"
+                        value="{{ filters.date_from }}"
+                        aria-describedby="manager-date-from-help">
+                    <span id="manager-date-from-help" class="sr-only">Filter tickets submitted on or after this date</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="manager_date_to">Submitted Date To</label>
+                    <input
+                        type="date"
+                        name="date_to"
+                        id="manager_date_to"
+                        value="{{ filters.date_to }}"
+                        aria-describedby="manager-date-to-help">
+                    <span id="manager-date-to-help" class="sr-only">Filter tickets submitted on or before this date</span>
+                </div>
+            </div>
+
+            <!-- Advanced Filters (Severity & Status) -->
+            <div class="filter-checkboxes">
+                <fieldset class="checkbox-group">
+                    <legend>Filter by Severity</legend>
+                    <div class="checkbox-row" role="group" aria-label="Severity level filters">
+                        {% for level in severity_levels|reverse %}
+                        <label class="checkbox-label">
+                            <input
+                                type="checkbox"
+                                name="severity"
+                                id="severity-{{ level }}"
+                                value="{{ level }}"
+                                {% if level in filters.severity %}checked{% endif %}
+                                aria-label="Include {{ level }} severity tickets">
+                            <span class="badge badge-{{ level }}" aria-hidden="true">{{ level }}</span>
+                            <span class="sr-only">{{ level }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+
+                <fieldset class="checkbox-group">
+                    <legend>Filter by Status</legend>
+                    <div class="checkbox-row" role="group" aria-label="Status filters">
+                        {% for s in status_levels %}
+                        <label class="checkbox-label">
+                            <input
+                                type="checkbox"
+                                name="status"
+                                id="status-{{ s | replace(' ', '-') }}"
+                                value="{{ s }}"
+                                {% if s in filters.status %}checked{% endif %}
+                                aria-label="Include {{ s }} status tickets">
+                            <span class="badge badge-{{ s | replace(' ', '-') }}" aria-hidden="true">{{ s }}</span>
+                            <span class="sr-only">{{ s }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+
+        <div style="margin-top:1.5rem; display:flex; gap:0.75rem; flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary" aria-label="Generate report with selected filters">Generate Report</button>
+            <a href="{{ url_for('report_edu') }}" class="btn btn-outline" role="button" aria-label="Reset all filters to default">Reset Filters</a>
+        </div>
+    </form>
+</div>
+
+{% if report_generated %}
+<div class="card" style="margin-bottom:1.25rem;" role="region" aria-labelledby="report-results-heading">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+        <h2 id="report-results-heading" style="margin-bottom: 0;">Summary</h2>
+        {% if tickets %}
+        <form method="POST" action="{{ url_for('report_edu_export') }}" style="margin: 0;">
+            <input type="hidden" name="user_role" value="{{ filters.user_role }}">
+            <input type="hidden" name="report_type" value="{{ filters.report_type }}">
+            <input type="hidden" name="url_contains" value="{{ filters.url_contains }}">
+            <input type="hidden" name="date_from" value="{{ filters.date_from }}">
+            <input type="hidden" name="date_to" value="{{ filters.date_to }}">
+            {% for s in filters.severity %}
+            <input type="hidden" name="severity" value="{{ s }}">
+            {% endfor %}
+            {% for st in filters.status %}
+            <input type="hidden" name="status" value="{{ st }}">
+            {% endfor %}
+            <button type="submit" class="btn btn-secondary" aria-label="Export report as CSV file">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 0.25rem;" aria-hidden="true">
+                    <path d="M8 11L4 7L5.4 5.6L7 7.2V1H9V7.2L10.6 5.6L12 7L8 11Z" fill="currentColor"/>
+                    <path d="M2 15C1.45 15 1 14.55 1 14V11H3V13H13V11H15V14C15 14.55 14.55 15 14 15H2Z" fill="currentColor"/>
+                </svg>
+                Export CSV
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="stat-row" role="region" aria-label="Report summary by severity level">
         {% for level in severity_levels %}
         <div class="stat-card">
-            <div class="stat-label">{{ level }}</div>
-            <div class="stat-number">
-                <span class="badge badge-{{ level }}">{{ severity_counts[level] }}</span>
+            <div class="stat-label" id="severity-{{ level }}-label">{{ level }}</div>
+            <div class="stat-number" aria-labelledby="severity-{{ level }}-label">
+                <span class="badge badge-{{ level }}" role="text">{{ severity_counts[level] }}</span>
             </div>
         </div>
         {% endfor %}
     </div>
 
-    <div class="stat-row" style="margin-top:0.75rem;" role="region" aria-label="Tickets by status">
+    <div class="stat-row" style="margin-top:0.75rem;" role="region" aria-label="Report summary by status">
         {% for s in status_levels %}
         <div class="stat-card">
-            <div class="stat-label">{{ s }}</div>
-            <div class="stat-number">
-                <span class="badge badge-{{ s | replace(' ', '-') }}">{{ status_counts[s] }}</span>
+            <div class="stat-label" id="status-{{ s | replace(' ', '-') }}-label">{{ s }}</div>
+            <div class="stat-number" aria-labelledby="status-{{ s | replace(' ', '-') }}-label">
+                <span class="badge badge-{{ s | replace(' ', '-') }}" role="text">{{ status_counts[s] }}</span>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
 
-<div class="card">
+<div class="card" role="region" aria-labelledby="report-table-heading">
+    <h2 id="report-table-heading" class="sr-only">Report Results Table</h2>
     {% if tickets %}
     <table>
-        <caption class="sr-only">Tickets for .edu websites, sorted by severity then date</caption>
+        <caption>{{ report_title }} - {{ tickets|length }} ticket{{ 's' if tickets|length != 1 }} found, sorted by severity then submission date</caption>
         <thead>
             <tr>
                 <th scope="col">ID</th>
@@ -49,20 +254,132 @@
         <tbody>
             {% for ticket in tickets %}
             <tr>
-                <td><a href="{{ url_for('ticket_detail', ticket_id=ticket.id) }}" aria-label="View ticket number {{ ticket.id }}">#{{ ticket.id }}</a></td>
-                <td>{{ ticket.customer_name }}</td>
-                <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ ticket.url }}</td>
-                <td><span class="badge badge-{{ ticket.severity }}">{{ ticket.severity }}</span></td>
-                <td><span class="badge badge-{{ ticket.status | replace(' ', '-') }}">{{ ticket.status }}</span></td>
-                <td>{{ ticket.problem_time }}</td>
-                <td>{{ ticket.submitted_at[:10] }}</td>
+                <td data-label="ID">
+                    <a href="{{ url_for('ticket_detail', ticket_id=ticket.id) }}" aria-label="View details for ticket number {{ ticket.id }}">#{{ ticket.id }}</a>
+                </td>
+                <td data-label="Customer">{{ ticket.customer_name }}</td>
+                <td data-label="Website" style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ ticket.url }}">
+                    {{ ticket.url }}
+                </td>
+                <td data-label="Severity">
+                    <span class="badge badge-{{ ticket.severity }}" role="text">{{ ticket.severity }}</span>
+                </td>
+                <td data-label="Status">
+                    <span class="badge badge-{{ ticket.status | replace(' ', '-') }}" role="text">{{ ticket.status }}</span>
+                </td>
+                <td data-label="Problem Date">
+                    <time datetime="{{ ticket.problem_time }}">{{ ticket.problem_time }}</time>
+                </td>
+                <td data-label="Submitted">
+                    <time datetime="{{ ticket.submitted_at[:10] }}">{{ ticket.submitted_at[:10] }}</time>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-    <p style="margin-top:1rem; color:#666; font-size:0.9rem;">{{ tickets|length }} ticket{{ 's' if tickets|length != 1 }} found.</p>
+    <p style="margin-top:1rem; color:#666; font-size:0.9rem;" role="status" aria-live="polite">
+        {{ tickets|length }} ticket{{ 's' if tickets|length != 1 }} found
+    </p>
     {% else %}
-    <p style="color:#777; padding:1rem 0;">No tickets found for .edu websites.</p>
+    <p style="color:#777; padding:1rem 0;" role="status" aria-live="polite">No tickets found matching your criteria.</p>
     {% endif %}
 </div>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleStaff = document.getElementById('role-staff');
+        const roleManager = document.getElementById('role-manager');
+        const reportTypeSelect = document.getElementById('report_type');
+        const staffReportsGroup = document.getElementById('staff-reports');
+        const managerReportsGroup = document.getElementById('manager-reports');
+        const staffFilters = document.getElementById('staff-filters');
+        const managerFilters = document.getElementById('manager-filters');
+
+        function updateReportOptions() {
+            const isManager = roleManager.checked;
+
+            if (isManager) {
+                // Show manager options
+                staffReportsGroup.style.display = 'none';
+                managerReportsGroup.style.display = 'block';
+
+                // Set first manager option as selected if currently on staff option
+                const currentValue = reportTypeSelect.value;
+                const managerOptions = Array.from(managerReportsGroup.querySelectorAll('option')).map(opt => opt.value);
+                if (!managerOptions.includes(currentValue)) {
+                    reportTypeSelect.value = 'open';
+                }
+            } else {
+                // Show staff options
+                staffReportsGroup.style.display = 'block';
+                managerReportsGroup.style.display = 'none';
+
+                // Set first staff option as selected if currently on manager-only option
+                const currentValue = reportTypeSelect.value;
+                const staffOptions = Array.from(staffReportsGroup.querySelectorAll('option')).map(opt => opt.value);
+                if (!staffOptions.includes(currentValue)) {
+                    reportTypeSelect.value = 'open';
+                }
+            }
+
+            toggleFilters();
+        }
+
+        function toggleFilters() {
+            const isManager = roleManager.checked;
+            const reportType = reportTypeSelect.value;
+
+            // Hide all filters first
+            staffFilters.style.display = 'none';
+            managerFilters.style.display = 'none';
+
+            if (isManager) {
+                // Manager: show filters for custom reports
+                if (reportType === 'custom') {
+                    managerFilters.style.display = 'block';
+                    managerFilters.removeAttribute('aria-hidden');
+                    enableInputs(managerFilters);
+                } else {
+                    managerFilters.setAttribute('aria-hidden', 'true');
+                    disableInputs(managerFilters);
+                }
+            } else {
+                // Staff: always show date filters (optional)
+                staffFilters.style.display = 'block';
+                staffFilters.removeAttribute('aria-hidden');
+                enableInputs(staffFilters);
+            }
+        }
+
+        function enableInputs(container) {
+            const inputs = container.querySelectorAll('input, select');
+            inputs.forEach(input => input.removeAttribute('tabindex'));
+        }
+
+        function disableInputs(container) {
+            const inputs = container.querySelectorAll('input, select');
+            inputs.forEach(input => input.setAttribute('tabindex', '-1'));
+        }
+
+        // Event listeners
+        roleStaff.addEventListener('change', updateReportOptions);
+        roleManager.addEventListener('change', updateReportOptions);
+        reportTypeSelect.addEventListener('change', toggleFilters);
+
+        // Initialize on page load
+        updateReportOptions();
+
+        // Announce filter results to screen readers on form submit
+        const form = document.querySelector('form[method="POST"]');
+        if (form) {
+            form.addEventListener('submit', function() {
+                const statusElement = document.querySelector('[role="status"]');
+                if (statusElement) {
+                    statusElement.setAttribute('aria-live', 'assertive');
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

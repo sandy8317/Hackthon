@@ -1,7 +1,9 @@
 import sqlite3
+import csv
+from io import StringIO
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from flask import Flask, render_template, request, redirect, url_for, flash, g
+from flask import Flask, render_template, request, redirect, url_for, flash, g, Response
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-change-in-production"
@@ -181,6 +183,8 @@ def ticket_list():
         tickets=tickets,
         page=page,
         total_pages=total_pages,
+        total=total,
+        per_page=PER_PAGE,
         severity_filter=severity_filter,
         search_query=search_query,
         sort=sort,
@@ -255,21 +259,127 @@ def update_severity(ticket_id):
     return redirect(url_for("ticket_detail", ticket_id=ticket_id))
 
 
-@app.route("/reports/edu")
+def build_report_query(filters):
+    """Build SQL query based on report filters"""
+    conditions = []
+    params = []
+
+    # Handle preset report types
+    if filters["report_type"] == "open":
+        # Open Tickets: Status is Open or In Progress
+        conditions.append("status IN ('Open', 'In Progress')")
+    elif filters["report_type"] == "high_priority":
+        # High Priority: Critical and High severity
+        conditions.append("severity IN ('Critical', 'High')")
+    elif filters["report_type"] == "edu":
+        # .edu Websites
+        conditions.append("(LOWER(url) LIKE '%.edu' OR LOWER(url) LIKE '%.edu/%' OR LOWER(url) LIKE '%.edu?%')")
+    elif filters["report_type"] == "recent":
+        # Recent: Last 30 days
+        conditions.append("DATE(submitted_at) >= DATE('now', '-30 days')")
+    elif filters["report_type"] == "pending":
+        # Pending Review: Status is Pending
+        conditions.append("status = 'Pending'")
+    elif filters["report_type"] == "closed_week":
+        # Closed This Week: Status is Closed, submitted in last 7 days
+        conditions.append("status = 'Closed'")
+        conditions.append("DATE(submitted_at) >= DATE('now', '-7 days')")
+    elif filters["report_type"] == "all_tickets":
+        # All Tickets: No filter, everything
+        pass  # No conditions needed
+    elif filters["report_type"] == "custom":
+        # Custom: Apply user-defined filters
+        if filters["url_contains"]:
+            conditions.append("LOWER(url) LIKE ?")
+            params.append(f"%{filters['url_contains'].lower()}%")
+
+        # Severity filter (only for custom)
+        if filters["severity"]:
+            placeholders = ",".join("?" * len(filters["severity"]))
+            conditions.append(f"severity IN ({placeholders})")
+            params.extend(filters["severity"])
+
+        # Status filter (only for custom)
+        if filters["status"]:
+            placeholders = ",".join("?" * len(filters["status"]))
+            conditions.append(f"status IN ({placeholders})")
+            params.extend(filters["status"])
+
+    # Apply date filters for staff (always) and managers (custom only)
+    is_manager = filters.get("user_role") == "manager"
+    is_custom = filters["report_type"] == "custom"
+
+    # Staff can always use date filters; managers only on custom reports
+    if not is_manager or is_custom:
+        if filters["date_from"]:
+            conditions.append("DATE(submitted_at) >= ?")
+            params.append(filters["date_from"])
+        if filters["date_to"]:
+            conditions.append("DATE(submitted_at) <= ?")
+            params.append(filters["date_to"])
+
+    where_clause = " AND ".join(conditions) if conditions else "1=1"
+    return where_clause, params
+
+
+@app.route("/reports/edu", methods=["GET", "POST"])
 def report_edu():
     db = get_db()
-    tickets = db.execute(
-        "SELECT * FROM tickets WHERE LOWER(url) LIKE '%.edu' OR LOWER(url) LIKE '%.edu/%' OR LOWER(url) LIKE '%.edu?%'"
-        " ORDER BY CASE severity WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END, submitted_at DESC"
-    ).fetchall()
 
+    # Track if report has been generated
+    report_generated = request.method == "POST"
+
+    # Default filters
+    filters = {
+        "user_role": request.form.get("user_role", "staff") if request.method == "POST" else "staff",
+        "report_type": request.form.get("report_type", "open") if request.method == "POST" else "open",
+        "severity": request.form.getlist("severity") if request.method == "POST" else [],
+        "status": request.form.getlist("status") if request.method == "POST" else [],
+        "date_from": request.form.get("date_from", "").strip() if request.method == "POST" else "",
+        "date_to": request.form.get("date_to", "").strip() if request.method == "POST" else "",
+        "url_contains": request.form.get("url_contains", "").strip() if request.method == "POST" else "",
+    }
+
+    tickets = []
     severity_counts = {s: 0 for s in SEVERITY_LEVELS}
     status_counts = {s: 0 for s in STATUS_LEVELS}
-    for t in tickets:
-        if t["severity"] in severity_counts:
-            severity_counts[t["severity"]] += 1
-        if t["status"] in status_counts:
-            status_counts[t["status"]] += 1
+    report_title = ""
+
+    # Only run query if report has been generated
+    if report_generated:
+        # Build query
+        where_clause, params = build_report_query(filters)
+
+        tickets = db.execute(
+            f"SELECT * FROM tickets WHERE {where_clause} "
+            "ORDER BY CASE severity WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END, submitted_at DESC",
+            params
+        ).fetchall()
+
+        # Calculate statistics
+        for t in tickets:
+            if t["severity"] in severity_counts:
+                severity_counts[t["severity"]] += 1
+            if t["status"] in status_counts:
+                status_counts[t["status"]] += 1
+
+        # Determine report title based on report type
+        if filters["report_type"] == "open":
+            report_title = "My Open Tickets" if filters["user_role"] == "staff" else "Open Tickets"
+        elif filters["report_type"] == "high_priority":
+            report_title = "High Priority Tickets"
+        elif filters["report_type"] == "edu":
+            report_title = ".edu Website Issues"
+        elif filters["report_type"] == "recent":
+            report_title = "Recent Activity (Last 30 Days)"
+        elif filters["report_type"] == "pending":
+            report_title = "Pending Review"
+        elif filters["report_type"] == "closed_week":
+            report_title = "Closed This Week"
+        elif filters["report_type"] == "all_tickets":
+            report_title = "All Tickets"
+        elif filters["report_type"] == "custom":
+            report_title = "Custom Report"
 
     return render_template(
         "report_edu.html",
@@ -278,6 +388,77 @@ def report_edu():
         status_counts=status_counts,
         severity_levels=SEVERITY_LEVELS,
         status_levels=STATUS_LEVELS,
+        filters=filters,
+        report_title=report_title,
+        report_generated=report_generated,
+    )
+
+
+@app.route("/reports/edu/export", methods=["POST"])
+def report_edu_export():
+    db = get_db()
+
+    # Get filters from form
+    filters = {
+        "user_role": request.form.get("user_role", "staff"),
+        "report_type": request.form.get("report_type", "open"),
+        "severity": request.form.getlist("severity"),
+        "status": request.form.getlist("status"),
+        "date_from": request.form.get("date_from", "").strip(),
+        "date_to": request.form.get("date_to", "").strip(),
+        "url_contains": request.form.get("url_contains", "").strip(),
+    }
+
+    # Build query using same logic as report view
+    where_clause, params = build_report_query(filters)
+
+    tickets = db.execute(
+        f"SELECT * FROM tickets WHERE {where_clause} "
+        "ORDER BY CASE severity WHEN 'Critical' THEN 1 WHEN 'High' THEN 2 WHEN 'Medium' THEN 3 ELSE 4 END, submitted_at DESC",
+        params
+    ).fetchall()
+
+    # Create CSV
+    output = StringIO()
+    writer = csv.writer(output)
+
+    # Write header
+    writer.writerow([
+        "Ticket ID",
+        "Customer Name",
+        "Email",
+        "Website URL",
+        "Severity",
+        "Status",
+        "Problem Date",
+        "Description",
+        "Submitted At"
+    ])
+
+    # Write data rows
+    for ticket in tickets:
+        writer.writerow([
+            ticket["id"],
+            ticket["customer_name"],
+            ticket["email"],
+            ticket["url"],
+            ticket["severity"],
+            ticket["status"],
+            ticket["problem_time"],
+            ticket["description"],
+            ticket["submitted_at"]
+        ])
+
+    # Generate filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"ticket_report_{timestamp}.csv"
+
+    # Create response
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 

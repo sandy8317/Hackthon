@@ -2,8 +2,8 @@
 {% block title %}Ticket #{{ ticket.id }}{% endblock %}
 
 {% block content %}
+<h1>Ticket #{{ ticket.id }}</h1>
 <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
-    <h1 style="margin:0;">Ticket #{{ ticket.id }}</h1>
     <span class="badge badge-{{ ticket.severity }}" style="font-size:0.9rem; padding:0.3rem 0.85rem;" aria-label="Severity: {{ ticket.severity }}">{{ ticket.severity }}</span>
     <span class="badge badge-{{ ticket.status | replace(' ', '-') }}" style="font-size:0.9rem; padding:0.3rem 0.85rem;" aria-label="Status: {{ ticket.status }}">{{ ticket.status }}</span>
     <a href="{{ url_for('ticket_list') }}" class="btn btn-secondary" style="margin-left:auto; padding:0.4rem 1rem; font-size:0.875rem;">&larr; Back to List</a>

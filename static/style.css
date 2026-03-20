@@ -42,6 +42,9 @@ body {
     background: #fff;
     color: #333;
     line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 nav {
@@ -76,31 +79,245 @@ nav a:focus {
     border-radius: 2px;
 }
 
+nav .nav-link {
+    position: relative;
+    padding-bottom: 2px;
+}
+
+nav .nav-link.active {
+    font-family: "UChicagoSansSerif-SemiBold";
+}
+
+nav .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #fff;
+    border-radius: 2px 2px 0 0;
+}
+
 nav .brand {
     font-family: "UChicagoSansSerif-Regular";
-    font-size: 1.1rem;
+    font-size: .85rem;
     font-weight: 700;
     opacity: 1;
     margin-right: auto;
+    margin-left: -0.75rem;
+}
+
+/* Page Header */
+.page-header {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1.5rem 1rem;
+}
+
+.page-header-inner {
+    max-width: 1430px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+}
+
+.page-header-logo-link {
+    display: inline-block;
+    line-height: 0;
+    transition: opacity 0.2s ease;
+}
+
+.page-header-logo-link:hover {
+    opacity: 0.8;
+}
+
+.page-header-logo-link:focus {
+    outline: 3px solid #800000;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.page-header-logo-link:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.page-header-logo-link:focus-visible {
+    outline: 3px solid #800000;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.page-header-logo {
+    height: 50px;
+    width: auto;
+    display: block;
+}
+
+@media screen and (max-width: 768px) {
+    .page-header {
+        padding: 1rem;
+    }
+
+    .page-header-logo {
+        height: 40px;
+    }
+}
+
+/* User menu dropdown */
+.user-menu {
+    position: relative;
+}
+
+.user-menu-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: "UChicagoSansSerif-Regular";
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.user-menu-trigger:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.user-menu-trigger:focus {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+.user-menu-trigger .user-name {
+    font-weight: 600;
+}
+
+.dropdown-arrow {
+    transition: transform 0.2s;
+}
+
+.user-menu-trigger[aria-expanded="true"] .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.user-menu-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+    z-index: 1000;
+}
+
+/* Hide dropdown from screen readers when closed */
+.user-menu-dropdown[aria-hidden="true"] {
+    display: none;
+}
+
+.user-menu-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    display: block;
+}
+
+.user-menu-dropdown a {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #1f2937;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+    border-radius: 0;
+    position: relative;
+}
+
+.user-menu-dropdown a:first-child {
+    border-radius: 6px 6px 0 0;
+}
+
+.user-menu-dropdown a:last-child {
+    border-radius: 0 0 6px 6px;
+}
+
+.user-menu-dropdown a:hover {
+    background: #f3f4f6;
+    color: #800000;
+}
+
+.user-menu-dropdown a.active {
+    color: #800000;
+    font-family: "UChicagoSansSerif-SemiBold";
+}
+
+.user-menu-dropdown a.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #800000;
+    border-radius: 0 4px 4px 0;
+}
+
+.user-menu-dropdown a:focus {
+    outline: 3px solid #800000;
+    outline-offset: -3px;
+}
+
+/* Ensure focus is always visible */
+.user-menu-dropdown a:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.user-menu-dropdown a:focus-visible {
+    outline: 3px solid #800000;
+    outline-offset: -3px;
+    background: #f3f4f6;
+    color: #800000;
 }
 
 .container {
-    max-width: 1430px;
+    width: 1430px;
+    max-width: 100%;
     margin: 2rem auto;
     padding: 0 1rem;
+    flex: 1;
 }
 
 h1 {
     font-family: "UChicagoSerif";
     font-size: 2.6rem;
     font-weight: 500;
-    margin-bottom: 1.5rem;
+    margin-bottom: 16px;
     color: #800000;
+    border-bottom: 1px solid #d9d9d9;
+    padding-bottom: 1rem;
+    background-image: url('https://president.uchicago.edu/dist/intranet/static/media/phoenix.6be056ef.svg');
+    background-repeat: no-repeat;
+    background-position: calc(100% - 16px) 0px;
+    background-size: 14%;
+    padding-right: 100px;
 }
 
 h2 {
-    font-family: "UChicagoSansSerif-SemiBold";
-    font-size: 1.3rem;
+    font-family: "UChicagoSansSerif-Light";
+    font-size: 34px;
     margin-bottom: 1rem;
     color: #800000;
 }
@@ -179,7 +396,22 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-    outline: 2px solid #800000;
+    outline: 3px solid #800000;
+    outline-offset: 1px;
+    border-color: #800000;
+    background: #fff;
+}
+
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible) {
+    outline: none;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid #800000;
     outline-offset: 1px;
     border-color: #800000;
     background: #fff;
@@ -217,7 +449,16 @@ textarea {
 }
 
 .btn:focus {
-    outline: 2px solid #800000;
+    outline: 3px solid #800000;
+    outline-offset: 2px;
+}
+
+.btn:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.btn:focus-visible {
+    outline: 3px solid #800000;
     outline-offset: 2px;
 }
 
@@ -231,12 +472,27 @@ textarea {
 }
 
 .btn-secondary {
-    background: #800000;
+    background: #5a5a5a;
     color: #fff;
 }
 
 .btn-secondary:hover {
-    background: #4d0000;
+    background: #3a3a3a;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #800000;
+    border: 2px solid #800000;
+}
+
+.btn-outline:hover {
+    background: #800000;
+    color: #fff;
+}
+
+.btn svg {
+    vertical-align: middle;
 }
 
 /* Severity badges */
@@ -317,6 +573,16 @@ table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.92rem;
+    margin-top: 1rem;
+}
+
+table caption {
+    text-align: left;
+    font-size: 0.9rem;
+    color: #666;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
 }
 
 thead th {
@@ -365,36 +631,180 @@ tbody td a:hover {
 }
 
 /* Pagination */
+.pagination-wrapper {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    background: transparent;
+}
+
+.pagination-info {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.pagination-text {
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.pagination-text strong {
+    color: #1f2937;
+    font-family: "UChicagoSansSerif-SemiBold";
+}
+
 .pagination {
     display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
-    margin-top: 1.2rem;
-    font-size: 0.9rem;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-.pagination a {
-    padding: 0.35rem 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    color: #1a3a5c;
+.pagination li {
+    display: inline-flex;
+}
+
+.pagination-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 0.65rem;
+    justify-content: center;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    color: #374151;
     text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    cursor: pointer;
 }
 
-.pagination a:hover {
-    background: #e2e8f0;
+.pagination-link:hover {
+    background: #f9fafb;
+    border-color: #800000;
+    color: #800000;
 }
 
-.pagination a:focus {
-    outline: 2px solid #1a3a5c;
+.pagination-link:focus {
+    outline: 3px solid #800000;
     outline-offset: 2px;
+    z-index: 1;
 }
 
-.pagination .current {
-    padding: 0.35rem 0.75rem;
-    background: #1a3a5c;
+.pagination-link:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.pagination-link:focus-visible {
+    outline: 3px solid #800000;
+    outline-offset: 2px;
+    z-index: 1;
+}
+
+.pagination-current {
+    background: #800000;
+    border-color: #800000;
     color: #fff;
-    border-radius: 4px;
+    font-family: "UChicagoSansSerif-SemiBold";
+    cursor: default;
+}
+
+.pagination-current:hover {
+    background: #800000;
+    border-color: #800000;
+    color: #fff;
+}
+
+.pagination-disabled {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pagination-disabled:hover {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+}
+
+.pagination-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    color: #6b7280;
+    font-size: 1.1rem;
+    user-select: none;
+}
+
+/* First/Last/Prev/Next specific styles */
+.pagination-first,
+.pagination-last,
+.pagination-prev,
+.pagination-next {
+    font-weight: 500;
+}
+
+.pagination-label {
+    display: inline;
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 640px) {
+    .pagination-wrapper {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+    }
+
+    .pagination-info {
+        margin-bottom: 0.75rem;
+    }
+
+    .pagination-text {
+        font-size: 0.85rem;
+    }
+
+    .pagination {
+        gap: 0.25rem;
+    }
+
+    .pagination-link {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    /* Hide labels on mobile, keep icons */
+    .pagination-label {
+        display: none;
+    }
+
+    /* Adjust ellipsis size */
+    .pagination-ellipsis {
+        min-width: 30px;
+        height: 36px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    /* Hide first/last buttons on very small screens */
+    .pagination-first,
+    .pagination-last {
+        display: none;
+    }
 }
 
 /* Detail view */
@@ -448,14 +858,14 @@ footer {
     text-align: center;
     padding: 1.5rem;
     font-size: 0.82rem;
-    margin-top: 3rem;
+    margin-top: auto;
 }
 
 /* Dashboard stat cards */
 .stat-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
@@ -463,23 +873,241 @@ footer {
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
-    padding: 0.9rem 1.25rem;
-    min-width: 110px;
+    padding: 0.65rem 0.9rem;
+    flex: 1 1 auto;
+    min-width: 85px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     text-align: center;
 }
 
 .stat-card .stat-number {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #4d4d4d;
     line-height: 1.2;
 }
 
 .stat-card .stat-label {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     color: #777;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-bottom: 0.25rem;
+}
+
+/* Report Builder */
+.report-builder-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+#report_type {
+    font-size: 0.95rem;
+    padding: 0.65rem 0.75rem;
+}
+
+#report_type option {
+    padding: 0.5rem;
+}
+
+/* Role Selection */
+.role-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.role-button {
+    position: relative;
+    cursor: pointer;
+    margin: 0;
+}
+
+.role-button input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.role-button-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1rem 1.25rem;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+.role-button:hover .role-button-content {
+    border-color: #800000;
+    background: #fafafa;
+}
+
+.role-button input[type="radio"]:checked + .role-button-content {
+    border-color: #800000;
+    background: #800000;
+    box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
+}
+
+.role-button input[type="radio"]:focus + .role-button-content {
+    outline: 3px solid #800000;
+    outline-offset: 2px;
+}
+
+.role-button input[type="radio"]:focus:not(:focus-visible) + .role-button-content {
+    outline: none;
+}
+
+.role-button input[type="radio"]:focus-visible + .role-button-content {
+    outline: 3px solid #800000;
+    outline-offset: 2px;
+}
+
+.role-title {
+    font-family: "UChicagoSansSerif-SemiBold";
+    font-size: 1.05rem;
+    color: #1f2937;
+}
+
+.role-button input[type="radio"]:checked + .role-button-content .role-title {
+    color: #fff;
+}
+
+.role-description {
+    font-size: 0.85rem;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+.role-button input[type="radio"]:checked + .role-button-content .role-description {
+    color: #fff;
+}
+
+.required-indicator {
+    color: #c0392b;
+    font-weight: 700;
+}
+
+.helper-text {
+    color: #6b7280;
+    font-weight: 400;
+    font-size: 0.85rem;
+}
+
+.filter-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.filter-info-box {
+    background: #f0f9ff;
+    border-left: 4px solid #3b82f6;
+    padding: 0.85rem 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+}
+
+.filter-info-box p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #1e40af;
+    line-height: 1.5;
+}
+
+.filter-info-box strong {
+    font-family: "UChicagoSansSerif-SemiBold";
+    color: #1e3a8a;
+}
+
+#staff-filters,
+#manager-filters {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.checkbox-group legend {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    padding: 0;
+    color: #444;
+}
+
+.checkbox-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: normal;
+    position: relative;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 0.4rem;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.checkbox-label input[type="checkbox"]:focus {
+    outline: 3px solid #800000;
+    outline-offset: 2px;
+}
+
+.checkbox-label:hover .badge {
+    opacity: 0.85;
+}
+
+/* Ensure proper focus for checkboxes with badges */
+.checkbox-label:focus-within {
+    outline: 3px solid #800000;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Table responsive enhancements */
+@media screen and (max-width: 768px) {
+    table caption {
+        position: static;
+        width: auto;
+        height: auto;
+        padding: 0.5rem;
+        clip: auto;
+        overflow: visible;
+        font-size: 0.9rem;
+        color: #666;
+    }
 }
