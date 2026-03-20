@@ -503,6 +503,25 @@ def dashboard():
     )
 
 
+@app.route("/api/tickets/<int:ticket_id>")
+def api_get_ticket(ticket_id):
+    db = get_db()
+    ticket = db.execute("SELECT * FROM tickets WHERE id = ?", (ticket_id,)).fetchone()
+    if ticket is None:
+        return {"error": "Ticket not found"}, 404
+    return {
+        "id": ticket["id"],
+        "customer_name": ticket["customer_name"],
+        "email": ticket["email"],
+        "url": ticket["url"],
+        "severity": ticket["severity"],
+        "status": ticket["status"],
+        "problem_time": ticket["problem_time"],
+        "description": ticket["description"],
+        "submitted_at": ticket["submitted_at"],
+    }
+
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
