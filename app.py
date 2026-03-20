@@ -539,6 +539,23 @@ def api_update_ticket_status(ticket_id):
     return {"id": ticket_id, "status": new_status}
 
 
+@app.route("/api/tickets/<int:ticket_id>/severity", methods=["PATCH"])
+def api_update_ticket_severity(ticket_id):
+    db = get_db()
+    ticket = db.execute("SELECT id FROM tickets WHERE id = ?", (ticket_id,)).fetchone()
+    if ticket is None:
+        return {"error": "Ticket not found"}, 404
+    data = request.get_json(silent=True)
+    if not data or "severity" not in data:
+        return {"error": "Missing 'severity' field in request body"}, 400
+    new_severity = data["severity"]
+    if new_severity not in SEVERITY_LEVELS:
+        return {"error": f"Invalid severity. Must be one of: {', '.join(SEVERITY_LEVELS)}"}, 400
+    db.execute("UPDATE tickets SET severity = ? WHERE id = ?", (new_severity, ticket_id))
+    db.commit()
+    return {"id": ticket_id, "severity": new_severity}
+
+
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)

@@ -51,6 +51,7 @@ templates/
 | GET | `/tickets/<id>` | Staff detail view |
 | GET | `/api/tickets/<id>` | JSON ticket detail |
 | PATCH | `/api/tickets/<id>/status` | Update ticket status (JSON API) |
+| PATCH | `/api/tickets/<id>/severity` | Update ticket severity (JSON API) |
 
 ### API Usage
 
@@ -67,6 +68,15 @@ curl -X PATCH http://localhost:5000/api/tickets/1/status \
 ```
 
 Valid status values: `Open`, `In Progress`, `Pending`, `Closed`.
+
+**Update ticket severity:**
+```bash
+curl -X PATCH http://localhost:5000/api/tickets/1/severity \
+  -H "Content-Type: application/json" \
+  -d '{"severity": "High"}'
+```
+
+Valid severity values: `Low`, `Medium`, `High`, `Critical`.
 
 API responses use HTTP `404` for unknown ticket IDs and `400` for invalid/missing fields. Flask 3.x serializes returned dicts as `application/json` automatically — no `jsonify()` needed.
 
