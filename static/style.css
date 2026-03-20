@@ -1157,12 +1157,12 @@ footer {
 }
 
 [data-theme="dark"] h1 {
-    color: #c0392b;
+    color: #ffffff;
     border-bottom-color: #444;
 }
 
 [data-theme="dark"] h2 {
-    color: #c0392b;
+    color: #ffffff;
 }
 
 [data-theme="dark"] .card {
