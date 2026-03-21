@@ -503,6 +503,28 @@ def dashboard():
     )
 
 
+@app.route("/api/tickets")
+def api_get_open_tickets():
+    db = get_db()
+    tickets = db.execute(
+        "SELECT * FROM tickets WHERE status = 'Open' ORDER BY submitted_at DESC"
+    ).fetchall()
+    return [
+        {
+            "id": t["id"],
+            "customer_name": t["customer_name"],
+            "email": t["email"],
+            "url": t["url"],
+            "severity": t["severity"],
+            "status": t["status"],
+            "problem_time": t["problem_time"],
+            "description": t["description"],
+            "submitted_at": t["submitted_at"],
+        }
+        for t in tickets
+    ]
+
+
 @app.route("/api/tickets/<int:ticket_id>")
 def api_get_ticket(ticket_id):
     db = get_db()
